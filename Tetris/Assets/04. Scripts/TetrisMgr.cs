@@ -6,9 +6,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Tetris Manager Class
+//
+// This class manages tetris panel and UI. 
+//
+// Changes
+// - 191029 Namhun Kim
+//   Create class.
+// - 191030 Namhun Kim
+//   Linking with UI
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 public class TetrisMgr : MonoBehaviour
 {
-    private static TetrisMgr instance = null;
+    private static TetrisMgr instance = null; // instance.
     public static TetrisMgr Instance
     {
         get
@@ -28,7 +39,7 @@ public class TetrisMgr : MonoBehaviour
         }
     }
 
-    [SerializeField]private int level = 1;
+    [SerializeField]private int level = 1; // level
     public int Level
     {
         get
@@ -37,7 +48,7 @@ public class TetrisMgr : MonoBehaviour
         }
     }
 
-    private bool isGameOver;
+    private bool isGameOver; // game over variable
     public bool IsGameOver
     {
         get
@@ -50,13 +61,13 @@ public class TetrisMgr : MonoBehaviour
         }
     }
 
-    private int combo;
+    private int score; // score
+    private int combo; // combo
 
-    [SerializeField] private Text scorePanel;
-    [SerializeField] private Text levelPanel;
-    [SerializeField] private Text comboPanel;
-    [SerializeField] private GameObject gameOverPanel;
-    private int score;
+    [SerializeField] private Text scorePanel; // score ui
+    [SerializeField] private Text levelPanel; // level ui
+    [SerializeField] private Text comboPanel; // combo ui
+    [SerializeField] private GameObject gameOverPanel; // game over ui
 
     private void Awake()
     {
@@ -75,6 +86,18 @@ public class TetrisMgr : MonoBehaviour
         Initialize();
     }
 
+    // private void Initialize()
+    //
+    // This method initialize member variables.
+    //
+    // @param    void
+    // @return   void
+    //
+    // Changes
+    // 191029 Namhun Kim
+    // - Create method.
+    // 191030 Namhun Kim
+    // - Add display initialize method.
     private void Initialize()
     {
         blockCtrlMgr = GameObject.Find("BlockCtrlMgr").GetComponent<Transform>();
@@ -96,6 +119,19 @@ public class TetrisMgr : MonoBehaviour
         DisplayCombo();
     }
 
+    // public void CheckLineFull()
+    //
+    // This method checks fully line.
+    // And clear line.
+    //
+    // @param    void
+    // @return   void
+    //
+    // Changes
+    // 191029 Namhun Kim
+    // - Create method
+    // 191030 Namhun Kim
+    // - Add combo, score, multiplier system
     public void CheckLineFull()
     {
         bool _isFull = true;
@@ -136,6 +172,17 @@ public class TetrisMgr : MonoBehaviour
         DisplayCombo();
     }
 
+    // private void ClearLine(int _line)
+    //
+    // This method clears tetris panel line.
+    // After clear line, pull down all blocks once.
+    //
+    // @param    int line   Line that want to delete.
+    // @return   void
+    //
+    // Changes
+    // 191029 Namhun Kim
+    // - Create class.
     private void ClearLine(int _line)
     {
         for(int i = blockCtrlMgr.childCount - 1; i >= 0; --i)
@@ -162,6 +209,16 @@ public class TetrisMgr : MonoBehaviour
 
     }
 
+    // private void CalculateScore(int multiplier)
+    //
+    // This method calculates score with multiplier and combo.
+    //
+    // @param    int multiplier   count that clear line at one time.
+    // @return   void
+    //
+    // Changes
+    // 191030 Namhun Kim
+    // - Create class.
     private void CalculateScore(int _multiplier)
     {
         score += 10 * _multiplier * (combo + 1);
@@ -172,6 +229,16 @@ public class TetrisMgr : MonoBehaviour
         DisplayLevel();
     }
 
+    // private void CalculateLevel()
+    //
+    // This method calculates level with score.
+    //
+    // @param    void
+    // @return   void
+    //
+    // Changes
+    // 191030 Namhun Kim
+    // - Create class.
     private void CalculateLevel()
     {
         while(score > 500 * level * level)
@@ -182,21 +249,61 @@ public class TetrisMgr : MonoBehaviour
         }
     }
 
+    // private void DisplayScore()
+    //
+    // This method write score on text ui.
+    //
+    // @param    void
+    // @return   void
+    //
+    // Changes
+    // 191030 Namhun Kim
+    // - Create class.
     private void DisplayScore()
     {
         scorePanel.text = "Score : " + score;
     }
 
+    // private void DisplayLevel()
+    //
+    // This method write level on text ui.
+    //
+    // @param    void
+    // @return   void
+    //
+    // Changes
+    // 191030 Namhun Kim
+    // - Create class.
     private void DisplayLevel()
     {
         levelPanel.text = "Level : " + level;
     }
 
+    // private void DisplayCombo()
+    //
+    // This method write combo on text ui.
+    //
+    // @param    void
+    // @return   void
+    //
+    // Changes
+    // 191030 Namhun Kim
+    // - Create class.
     private void DisplayCombo()
     {
         comboPanel.text = "Combo : " + combo;
     }
 
+    // public void GameOver()
+    //
+    // This method displays game over ui.
+    //
+    // @param    void
+    // @return   void
+    //
+    // Changes
+    // 191030 Namhun Kim
+    // - Create class.
     public void GameOver()
     {
         gameOverPanel.SetActive(true);

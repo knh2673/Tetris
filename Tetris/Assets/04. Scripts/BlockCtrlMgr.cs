@@ -5,6 +5,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Block Control Manager Class
+//
+// This class about controlling block.
+//
+// Changes
+// 191029 Namhun Kim
+// -  Create class.
+// 191030 Namhun Kim
+// - Add spacebar input.
+// - Add block list system.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 public class BlockCtrlMgr : MonoBehaviour
 {
     [SerializeField] private GameObject[] prefebs = new GameObject[7];
@@ -31,6 +43,18 @@ public class BlockCtrlMgr : MonoBehaviour
         PullDownBlockEverySeconds();
     }
 
+    // private void InputKey()
+    //
+    // This method checks keyboard input.
+    //
+    // @param    void
+    // @return   void
+    //
+    // Changes
+    // 191029 Namhun Kim
+    // - Create method.
+    // 191030 Namhun Kim
+    // - Add spacebar input.
     private void InputKey()
     {
         if (TetrisMgr.Instance.IsGameOver) return;
@@ -62,6 +86,18 @@ public class BlockCtrlMgr : MonoBehaviour
         }
     }
 
+    // private void Initialize()
+    //
+    // This method initialize member variables.
+    //
+    // @param    void
+    // @return   void
+    //
+    // Changes
+    // 191029 Namhun Kim
+    // - Create method.
+    // 191030 Namhun Kim
+    // - Add block list initialize.
     private void Initialize()
     {
         waitSec = new WaitForSeconds(2.0f);
@@ -88,6 +124,16 @@ public class BlockCtrlMgr : MonoBehaviour
         }
     }
 
+    // private GamObject CreateBlock()
+    //
+    // This method creates block and initialize.
+    //
+    // @param    void
+    // @return   GameObject block   New block address.
+    //
+    // Changes
+    // 191029 Namhun Kim
+    // - Create method.
     private GameObject CreateBlock()
     {
         int _prefebNum = Random.Range(0, 7);
@@ -98,6 +144,18 @@ public class BlockCtrlMgr : MonoBehaviour
         return _block;
     }
 
+    // private bool PullDownBlockOnce()
+    //
+    // This method pull down block once.
+    //
+    // @param    void
+    // @return   bool isSuccess   Return success.
+    //                            true: success pull down.
+    //                            false: crash other block or floor.
+    //
+    // Changes
+    // 191029 Namhun Kim
+    // - Create method.
     private bool PullDownBlockOnce()
     {
         UpdateBlockToTetrisPanel(false); // update current block position to tetris panel to false.
@@ -117,6 +175,18 @@ public class BlockCtrlMgr : MonoBehaviour
         return true;
     }
 
+    // private bool MoveBlockLeftRight(KeyCode key)
+    //
+    // This method move left or right.
+    //
+    // @param    void
+    // @return   bool isSuccess   Return success.
+    //                            true: success pull down.
+    //                            false: crash other block or floor.
+    //
+    // Changes
+    // 191029 Namhun Kim
+    // - Create method.
     private bool MoveBlockLeftRight(KeyCode key)
     {
         Vector3 _dir = Vector3.zero; // initialize.
@@ -146,7 +216,19 @@ public class BlockCtrlMgr : MonoBehaviour
 
         return true;
     }
-    
+
+    // private bool RotateBlock()
+    //
+    // This method rotates block to 90 euler degree.
+    //
+    // @param    void
+    // @return   bool isSuccess   Return success.
+    //                            true: success pull down.
+    //                            false: crash other block or floor.
+    //
+    // Changes
+    // 191029 Namhun Kim
+    // - Create method.
     private bool RotateBlock()
     {
         Vector3 _degree = new Vector3(90.0f , 0.0f, 0.0f);
@@ -168,6 +250,18 @@ public class BlockCtrlMgr : MonoBehaviour
         return true;
     }
 
+    // private bool AttachImmediately()
+    //
+    // This method pull down block to the end.
+    //
+    // @param    void
+    // @return   bool isSuccess   Return success.
+    //                            true: success pull down.
+    //                            false: crash other block or floor.
+    //
+    // Changes
+    // 191030 Namhun Kim
+    // - Create method.
     private bool AttachImmediately()
     {
         while (PullDownBlockOnce()) ;
@@ -192,6 +286,16 @@ public class BlockCtrlMgr : MonoBehaviour
         return true;
     }
 
+    // private void UpdateBlockToTetrisPanel(bool _setting)
+    //
+    // This method updates block panel when block is moving.
+    //
+    // @param    bool setting   Setting value that want to change. True is exist, false is not exist on panel.
+    // @return   void
+    //
+    // Changes
+    // 191029 Namhun Kim
+    // - Create method.
     private void UpdateBlockToTetrisPanel(bool _setting)
     {
         for (int i = 0; i < block.transform.childCount; ++i)
@@ -203,6 +307,19 @@ public class BlockCtrlMgr : MonoBehaviour
         }
     }
 
+    // private bool CheckBlockCrash()
+    //
+    // This method checks blocks crash.
+    // If it crashes, return false.
+    //
+    // @param    void  
+    // @return   bool isCrash   Return crash.
+    //                          true: Block is not crash.
+    //                          false: It crashes to other block or floor.
+    //
+    // Changes
+    // 191029 Namhun Kim
+    // - Create method.
     private bool CheckBlockCrash()
     {
         for (int i = 0; i < block.transform.childCount; ++i)
@@ -230,19 +347,33 @@ public class BlockCtrlMgr : MonoBehaviour
         return true;
     }
 
+    // private void PullDownBlockEverySeconds()
+    //
+    // This method pull down block once every seconds.
+    // If block arrives at floor, checks line and destroy current block and renew block.
+    //
+    // @param    void  
+    // @return   void
+    //
+    // Changes
+    // 191029 Namhun Kim
+    // - Create method.
+    // 191030 Namhun Kim
+    // - Change block mechanism.
     private void PullDownBlockEverySeconds()
     {
         if (TetrisMgr.Instance.IsGameOver) return;
 
-        time += Time.deltaTime;
+        time += Time.deltaTime; // time.
         if(time < 2.0f - TetrisMgr.Instance.Level * 0.09f)
             return;
-        Debug.Log(TetrisMgr.Instance.Level);
+        //Debug.Log(TetrisMgr.Instance.Level);
 
         if (block != null)
         {
-            if (!PullDownBlockOnce())
+            if (!PullDownBlockOnce()) 
             {
+                // Crashed
                 int _childCount = block.transform.childCount;
 
                 for (int i = _childCount-1; i >= 0; --i)
@@ -263,15 +394,25 @@ public class BlockCtrlMgr : MonoBehaviour
         time = 0.0f;
     }
 
+    // private bool UpdateToControlNewBlock()
+    //
+    // This method destroy current block and renew block.
+    //
+    // @param    void  
+    // @return   void
+    //
+    // Changes
+    // 191030 Namhun Kim
+    // - Change block mechanism.
     private bool UpdateToControlNewBlock()
     {
-        Destroy(block);
+        Destroy(block); // destroy current block.
 
-        block = blockList[0];
-        block.transform.position = new Vector3(-0.01f, 19.0f, 5.0f);
+        block = blockList[0]; // block gets next block.
+        block.transform.position = new Vector3(-0.01f, 19.0f, 5.0f); // move to spawn point.
 
-        blockList.Remove(blockList[0]);
-        blockList.Add(CreateBlock());
+        blockList.Remove(blockList[0]); // Remove at list.
+        blockList.Add(CreateBlock()); // Add new block.
         
         for (int i = 0; i < 2; ++i)
         {
