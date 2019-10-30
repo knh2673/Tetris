@@ -9,6 +9,8 @@ public class BlockCtrlMgr : MonoBehaviour
     [SerializeField] private WaitForSeconds waitSec;
 
     private GameObject block;
+    private GameObject fellBlock;
+    private List<GameObject> blockList;
     private GameObject blockMgr;
     private bool[,] tetrisPanel;
     private float time;
@@ -17,9 +19,6 @@ public class BlockCtrlMgr : MonoBehaviour
     void Start()
     {
         Initialize();
-
-        CreateBlock();
-        
     }
 
     // Update is called once per frame
@@ -52,6 +51,11 @@ public class BlockCtrlMgr : MonoBehaviour
             Debug.Log("Down");
             PullDownBlockOnce();
         }
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Debug.Log("Space");
+            AttachImmediately();
+        }
     }
 
     private void Initialize()
@@ -62,16 +66,31 @@ public class BlockCtrlMgr : MonoBehaviour
         tetrisPanel = TetrisMgr.Instance.TetrisPanel;
 
         time = 0.0f;
+
+        block = CreateBlock();
+
+        block.transform.position = new Vector3(-0.01f, 19.0f, 5.0f);
+
+        UpdateBlockToTetrisPanel(true);
+
+
+        blockList = new List<GameObject>();
+
+        for(int i = 0; i < 3; ++i)
+        {
+            blockList.Add(CreateBlock());
+
+            blockList[i].transform.position += Vector3.back * 7.0f * (2 - i);
+        }
     }
 
-    private void CreateBlock()
+    private GameObject CreateBlock()
     {
-        block = Instantiate<GameObject>(prefebs[Random.Range(0,7)]); // create block object on screen.
+        GameObject _block = Instantiate<GameObject>(prefebs[Random.Range(0,7)]); // create block object on screen.
 
-        block.transform.position = new Vector3(-0.01f, 19.0f, 5.0f); // set block's position to spawn point.
-        block.transform.parent = blockMgr.transform;
+        _block.transform.position = new Vector3(-0.01f, 10.0f, 30.0f); // set block's position to spawn point.
 
-        UpdateBlockToTetrisPanel(true); // update current block position to tetris panel to true.
+        return _block;
     }
 
     private bool PullDownBlockOnce()
@@ -144,6 +163,30 @@ public class BlockCtrlMgr : MonoBehaviour
         return true;
     }
 
+    private bool AttachImmediately()
+    {
+        while (PullDownBlockOnce()) ;
+
+        int _childCount = block.transform.childCount;
+
+        for (int i = _childCount - 1; i >= 0; --i)
+        {
+            Transform _tr = block.transform.GetChild(i);
+
+            _tr.parent = blockMgr.transform;
+
+            Debug.Log(_tr.position);
+        }
+
+        TetrisMgr.Instance.CheckLineFull();
+
+        UpdateToControlNewBlock();
+
+        time = 0.0f;
+
+        return true;
+    }
+
     private void UpdateBlockToTetrisPanel(bool _setting)
     {
         for (int i = 0; i < block.transform.childCount; ++i)
@@ -184,8 +227,9 @@ public class BlockCtrlMgr : MonoBehaviour
     private void PullDownBlockEverySeconds()
     {
         time += Time.deltaTime;
-        if(time < 2.0f - TetrisMgr.Instance.Level)
+        if(time < 2.0f - TetrisMgr.Instance.Level * 0.09f)
             return;
+        Debug.Log(TetrisMgr.Instance.Level);
 
         if (block != null)
         {
@@ -202,16 +246,30 @@ public class BlockCtrlMgr : MonoBehaviour
                     Debug.Log(_tr.position);
                 }
 
-                Destroy(block);
-
-                block = null;
-
                 TetrisMgr.Instance.CheckLineFull();
 
-                CreateBlock();
+                UpdateToControlNewBlock();
             }
         }
 
         time = 0.0f;
+    }
+
+    private void UpdateToControlNewBlock()
+    {
+        Destroy(block);
+
+        block = blockList[0];
+        block.transform.position = new Vector3(-0.01f, 19.0f, 5.0f);
+
+        UpdateBlockToTetrisPanel(true);
+
+        blockList.Remove(blockList[0]);
+        blockList.Add(CreateBlock());
+        
+        for (int i = 0; i < 2; ++i)
+        {
+            blockList[i].transform.position += Vector3.back * 7.0f;
+        }
     }
 }
