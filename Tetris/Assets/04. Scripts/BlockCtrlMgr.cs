@@ -9,7 +9,9 @@ public class BlockCtrlMgr : MonoBehaviour
     [SerializeField] private WaitForSeconds waitSec;
 
     private GameObject block;
+    private GameObject blockMgr;
     private bool[,] tetrisPanel;
+    private float time;
 
     // Start is called before the first frame update
     void Start()
@@ -24,6 +26,8 @@ public class BlockCtrlMgr : MonoBehaviour
     void Update()
     {
         InputKey();
+
+        PullDownBlockEverySeconds();
     }
 
     private void InputKey()
@@ -31,46 +35,183 @@ public class BlockCtrlMgr : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             Debug.Log("left");
+            MoveBlockLeftRight(KeyCode.LeftArrow);
         }
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             Debug.Log("right");
+            MoveBlockLeftRight(KeyCode.RightArrow);
         }
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             Debug.Log("Up");
+            RotateBlock();
         }
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
             Debug.Log("Down");
+            PullDownBlockOnce();
         }
     }
 
     private void Initialize()
     {
         waitSec = new WaitForSeconds(2.0f);
+        blockMgr = GameObject.Find("BlockCtrlMgr");
 
         tetrisPanel = TetrisMgr.Instance.TetrisPanel;
 
-        tetrisPanel[0, 0] = true;
+        time = 0.0f;
     }
 
     private void CreateBlock()
     {
-        block = Instantiate<GameObject>(prefebs[Random.Range(0,7)]);
+        block = Instantiate<GameObject>(prefebs[Random.Range(0,7)]); // create block object on screen.
 
-        block.transform.position = new Vector3(-0.01f, 19.0f, 5.0f);
+        block.transform.position = new Vector3(-0.01f, 19.0f, 5.0f); // set block's position to spawn point.
+        block.transform.parent = blockMgr.transform;
+
+        UpdateBlockToTetrisPanel(true); // update current block position to tetris panel to true.
+    }
+
+    private bool PullDownBlockOnce()
+    {
+        UpdateBlockToTetrisPanel(false); // update current block position to tetris panel to false.
         
-        for(int i=0; i < block.transform.childCount; ++i)
-        {
-            Transform _tr = block.transform.GetChild(i);
+        block.transform.position += Vector3.down;
 
-            tetrisPanel[(int)_tr.position.z, (int)_tr.position.y] = true;
+        if (!CheckBlockCrash()) // check block crash.
+        {
+            block.transform.position += Vector3.up;
+            UpdateBlockToTetrisPanel(true); // update current block position to tetris panel to true.
+
+            return false;
+        }
+
+        UpdateBlockToTetrisPanel(true); // update current block position to tetris panel to true.
+        
+        return true;
+    }
+
+    private bool MoveBlockLeftRight(KeyCode key)
+    {
+        Vector3 _dir = Vector3.zero; // initialize.
+
+        if(key == KeyCode.LeftArrow) // player push left arrow.
+        {
+            _dir = Vector3.back;
+        }
+        else if(key == KeyCode.RightArrow) // player push right arrow.
+        {
+            _dir = Vector3.forward;
+        }
+
+        UpdateBlockToTetrisPanel(false); // update current block position to tetris panel to false.
+
+        block.transform.position += _dir;
+
+        if (!CheckBlockCrash()) // check block crash.
+        {
+            block.transform.position += -_dir;
+            UpdateBlockToTetrisPanel(true); // update current block position to tetris panel to true.
+
+            return false;
+        }
+
+        UpdateBlockToTetrisPanel(true); // update current block position to tetris panel to true.
+
+        return true;
+    }
+    
+    private bool RotateBlock()
+    {
+        Vector3 _degree = new Vector3(90.0f , 0.0f, 0.0f);
+
+        UpdateBlockToTetrisPanel(false); // update current block position to tetris panel to false.
+
+        block.transform.Rotate(_degree, Space.World);
+
+        if (!CheckBlockCrash()) // check block crash.
+        {
+            block.transform.Rotate(-_degree, Space.World);
+            UpdateBlockToTetrisPanel(true); // update current block position to tetris panel to true.
+
+            return false;
+        }
+
+        UpdateBlockToTetrisPanel(true); // update current block position to tetris panel to true.
+
+        return true;
+    }
+
+    private void UpdateBlockToTetrisPanel(bool _setting)
+    {
+        for (int i = 0; i < block.transform.childCount; ++i)
+        {
+            Transform _tr = block.transform.GetChild(i); // child object's Transform component.
+            
+            //Debug.Log(Mathf.Round(_tr.position.z) + "," + Mathf.Round(_tr.position.y));
+            tetrisPanel[(int)Mathf.Round(_tr.position.z), (int)Mathf.Round(_tr.position.y)] = _setting; // set tetris panel.
         }
     }
 
-    IEnumerator PullDownBlock()
+    private bool CheckBlockCrash()
     {
-        yield return waitSec;
+        for (int i = 0; i < block.transform.childCount; ++i)
+        {
+            Transform _tr = block.transform.GetChild(i); // child object's Transform component.
+
+            if ((int)Mathf.Round(_tr.position.y) < 0) // crash into floor.
+            {
+                Debug.Log("Floor");
+                return false;
+            }
+            if((int)Mathf.Round(_tr.position.z) < 0 || (int)Mathf.Round(_tr.position.z) > 9) // crash into wall.
+            {
+                Debug.Log("Wall");
+                return false;
+            }
+            if (tetrisPanel[(int)Mathf.Round(_tr.position.z), (int)Mathf.Round(_tr.position.y)] == true) // crash into other block.
+            {
+                Debug.Log("Crash");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void PullDownBlockEverySeconds()
+    {
+        time += Time.deltaTime;
+        if(time < 2.0f - TetrisMgr.Instance.Level)
+            return;
+
+        if (block != null)
+        {
+            if (!PullDownBlockOnce())
+            {
+                int _childCount = block.transform.childCount;
+
+                for (int i = _childCount-1; i >= 0; --i)
+                {
+                    Transform _tr = block.transform.GetChild(i);
+
+                    _tr.parent = blockMgr.transform;
+
+                    Debug.Log(_tr.position);
+                }
+
+                Destroy(block);
+
+                block = null;
+
+                TetrisMgr.Instance.CheckLineFull();
+
+                CreateBlock();
+            }
+        }
+
+        time = 0.0f;
     }
 }
