@@ -37,11 +37,25 @@ public class TetrisMgr : MonoBehaviour
         }
     }
 
+    private bool isGameOver;
+    public bool IsGameOver
+    {
+        get
+        {
+            return isGameOver;
+        }
+        set
+        {
+            isGameOver = value;
+        }
+    }
+
     private int combo;
 
     [SerializeField] private Text scorePanel;
     [SerializeField] private Text levelPanel;
     [SerializeField] private Text comboPanel;
+    [SerializeField] private GameObject gameOverPanel;
     private int score;
 
     private void Awake()
@@ -61,12 +75,6 @@ public class TetrisMgr : MonoBehaviour
         Initialize();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
     private void Initialize()
     {
         blockCtrlMgr = GameObject.Find("BlockCtrlMgr").GetComponent<Transform>();
@@ -79,6 +87,9 @@ public class TetrisMgr : MonoBehaviour
 
         score = 0;
         combo = 0;
+
+        isGameOver = false;
+        gameOverPanel.SetActive(false);
 
         DisplayScore();
         DisplayLevel();
@@ -184,5 +195,10 @@ public class TetrisMgr : MonoBehaviour
     private void DisplayCombo()
     {
         comboPanel.text = "Combo : " + combo;
+    }
+
+    public void GameOver()
+    {
+        gameOverPanel.SetActive(true);
     }
 }

@@ -1,4 +1,7 @@
-﻿using System.Collections;
+﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// BlockCtrlMgr.cs
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,7 +12,6 @@ public class BlockCtrlMgr : MonoBehaviour
     [SerializeField] private WaitForSeconds waitSec;
 
     private GameObject block;
-    private GameObject fellBlock;
     private List<GameObject> blockList;
     private GameObject blockMgr;
     private bool[,] tetrisPanel;
@@ -31,29 +33,31 @@ public class BlockCtrlMgr : MonoBehaviour
 
     private void InputKey()
     {
+        if (TetrisMgr.Instance.IsGameOver) return;
+
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            Debug.Log("left");
+            //Debug.Log("left");
             MoveBlockLeftRight(KeyCode.LeftArrow);
         }
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            Debug.Log("right");
+            //Debug.Log("right");
             MoveBlockLeftRight(KeyCode.RightArrow);
         }
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            Debug.Log("Up");
+            //Debug.Log("Up");
             RotateBlock();
         }
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            Debug.Log("Down");
+            //Debug.Log("Down");
             PullDownBlockOnce();
         }
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            Debug.Log("Space");
+            //Debug.Log("Space");
             AttachImmediately();
         }
     }
@@ -86,7 +90,8 @@ public class BlockCtrlMgr : MonoBehaviour
 
     private GameObject CreateBlock()
     {
-        GameObject _block = Instantiate<GameObject>(prefebs[Random.Range(0,7)]); // create block object on screen.
+        int _prefebNum = Random.Range(0, 7);
+        GameObject _block = Instantiate<GameObject>(prefebs[_prefebNum]); // create block object on screen.
 
         _block.transform.position = new Vector3(-0.01f, 10.0f, 30.0f); // set block's position to spawn point.
 
@@ -217,6 +222,7 @@ public class BlockCtrlMgr : MonoBehaviour
             if (tetrisPanel[(int)Mathf.Round(_tr.position.z), (int)Mathf.Round(_tr.position.y)] == true) // crash into other block.
             {
                 Debug.Log("Crash");
+                Debug.Log(_tr.position.z + "," + _tr.position.y);
                 return false;
             }
         }
@@ -226,6 +232,8 @@ public class BlockCtrlMgr : MonoBehaviour
 
     private void PullDownBlockEverySeconds()
     {
+        if (TetrisMgr.Instance.IsGameOver) return;
+
         time += Time.deltaTime;
         if(time < 2.0f - TetrisMgr.Instance.Level * 0.09f)
             return;
@@ -255,14 +263,12 @@ public class BlockCtrlMgr : MonoBehaviour
         time = 0.0f;
     }
 
-    private void UpdateToControlNewBlock()
+    private bool UpdateToControlNewBlock()
     {
         Destroy(block);
 
         block = blockList[0];
         block.transform.position = new Vector3(-0.01f, 19.0f, 5.0f);
-
-        UpdateBlockToTetrisPanel(true);
 
         blockList.Remove(blockList[0]);
         blockList.Add(CreateBlock());
@@ -271,5 +277,20 @@ public class BlockCtrlMgr : MonoBehaviour
         {
             blockList[i].transform.position += Vector3.back * 7.0f;
         }
+
+        // Game Over
+        if (!CheckBlockCrash())
+        {
+            TetrisMgr.Instance.IsGameOver = true;
+            TetrisMgr.Instance.GameOver();
+            Destroy(block);
+            block = null;
+
+            return false;
+        }
+
+        UpdateBlockToTetrisPanel(true);
+
+        return true;
     }
 }
